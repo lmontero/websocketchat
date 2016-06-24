@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Socket.IO chat</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box;}
+        body { font: 13px Helvetica, Arial;}
+        form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+        form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+        form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+        #messages { list-style-type: none; margin: 0; padding: 0; }
+        #messages li { padding: 5px 10px; }
+        #messages li:nth-child(odd) { background: #eee; }
+        #writers { position: fixed; bottom: 45px; }
+        #writers li { padding-left: 10px; display: inline; }
+        .onlineusers {
+            position: fixed;
+            right: 5px;
+            top: 30px;
+            width: 200px;
+            height: 400px;
+            border: 2px solid;
+        }
+    </style>
+</head>
+<body>
+    <span id="nickname"></span>
+    <ul id="messages"></ul>
+    <ul id="writers"></ul>
+    <div class="onlineusers">
+        <ul id="users"></ul>
+    </div>
+    <form action="">
+        <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+        var socket = io();
+        var result = prompt('Enter your Nickname...');
+        var writing = false;
+        if (result){
+            $('#nickname').html('<h1>' + result + '</h1>');
+            socket.emit('user connected', result);
+        }
+
+        $('#m').on('input', function () {
+            if (this.value){
+                if (!writing){
+                    socket.emit('writing on', result + ' is typing...');
+                }
+                writing = true;
+            }
+            else {
+                writing = false;
+                socket.emit('writing off', result + ' is typing...');
+            }
+        });
+
+        $('form').submit(function () {
+            writing = false;
+            $('#messages').append($('<li>').text(result + ': ' + $('#m').val()));
+            socket.emit('chat message', result + ': ' + $('#m').val());
+            $('#m').val('');
+            socket.emit('writing off', result + ' is typing...');
+            return false;
+        });
+        socket.on('chat message', function (msg) {
+            $('#messages').append($('<li>').text(msg));
+        });
+        socket.on('user connected', function (info) {
+            $('#messages').append($('<li>').text(info));
+        });
+        socket.on('disconnected user', function (info) {
+            $('#messages').append($('<li>').text(info));
+        });
+        socket.on('writing on', function (msg) {
+            $('#writers').append($('<li>').text(msg));
+        });
+        socket.on('writing off', function (msg) {
+            $('#writers li:contains("' + msg + '")').remove();
+        });
+        socket.on('load users', function (clients) {
+            //console.log(clients);
+        });
+
+    </script>
+</body>
+</html>
