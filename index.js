@@ -32,9 +32,11 @@
     socket.on('user connected', function (info) {
       socket.nickname = info;
       socket.broadcast.emit('user connected', info + ' was connected...');
-      clients.push({id: socket.id, nickname: socket.nickname});
+      socket.emit('load users', clients);
+      var user = {id: socket.id, nickname: socket.nickname};
+      clients.push(user);
+      socket.broadcast.emit('load new user', user);
       console.log(clients);
-      //socket.emit('load users', io.sockets.clients());
     });
     
     socket.on('chat message', function (msg) {
@@ -45,7 +47,7 @@
       var positionToRemove = clients.map(function (item) {
         return item.id;
       }).indexOf(socket.id);
-      positionToRemove >= 0 ? clients.splice(positionToRemove, 0): console.log('Not exist this element...');
+      positionToRemove >= 0 ? clients.splice(positionToRemove, 1): console.log('Not exist this element...');
       io.emit('disconnected user', socket.nickname + ' was disconnected...');
     });
     
