@@ -21,6 +21,7 @@
             width: 200px;
             height: 400px;
             border: 2px solid;
+            background-color: blanchedalmond;
         }
         .onlineusers ul{
             list-style-type: none;
@@ -87,11 +88,14 @@
         });
         socket.on('load users', function (clients) {
             clients.forEach(function(client) {
-                $('.onlineusers #users').append($('<li>').text(client.nickname).attr('id', client.id));
+                $('.onlineusers #users').append($('<li id="'+client.id+'"><a href="#">'+client.nickname+'</a></li>'));
             });
         });
         socket.on('load new user', function (user) {
-            $('.onlineusers #users').append($('<li>').text(user.nickname).attr('id', user.id));
+            $('.onlineusers #users').append($('<li id="'+user.id+'"><a href="#">'+user.nickname+'</a></li>'));
+        });
+        socket.on('remove user', function (userId) {
+            $("#"+userId).remove();
         });
 
     </script>

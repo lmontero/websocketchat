@@ -36,7 +36,7 @@
       var user = {id: socket.id, nickname: socket.nickname};
       clients.push(user);
       socket.broadcast.emit('load new user', user);
-      console.log(clients);
+      //console.log(clients);
     });
     
     socket.on('chat message', function (msg) {
@@ -47,6 +47,18 @@
       var positionToRemove = clients.map(function (item) {
         return item.id;
       }).indexOf(socket.id);
+      
+      var disconnectedUser = clients[positionToRemove];
+      if (disconnectedUser){
+        socket.broadcast.emit('remove user', escapeText(disconnectedUser.id));
+      }
+  
+      function escapeText(selector) {
+        return selector.replace(/(!|"|#|\$|%|\'|\(|\)|\*|\+|\,|\.|\/|\:|\;|\?|@)/g, function($1, $2) {
+          return "\\" + $2;
+        });
+      }
+      
       positionToRemove >= 0 ? clients.splice(positionToRemove, 1): console.log('Not exist this element...');
       io.emit('disconnected user', socket.nickname + ' was disconnected...');
     });
