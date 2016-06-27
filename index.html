@@ -33,7 +33,9 @@
     <ul id="messages"></ul>
     <ul id="writers"></ul>
     <div class="onlineusers">
-        <ul id="users"></ul>
+        <ul id="users">
+            <li id="all" onclick="privatechat(this)">all</li>
+        </ul>
     </div>
     <form action="">
         <input id="m" autocomplete="off" /><button>Send</button>
@@ -45,8 +47,9 @@
         var socket = io();
         var result = prompt('Enter your Nickname...');
         var writing = false;
+        var privateUserId = 'all';
         if (result){
-            $('#nickname').html('<h1>' + result + '</h1>');
+            $('#nickname').html('<h1>' + result + ' -> ' + privateUserId + '</h1>');
             socket.emit('user connected', result);
         }
 
@@ -63,10 +66,17 @@
             }
         });
 
+        function privatechat(item) {
+            console.log(item.innerText);
+            privateUserId = item.id;
+            $('#nickname').html('<h1>' + result + ' -> ' + item.innerText + '</h1>');
+        }
+
         $('form').submit(function () {
             writing = false;
             $('#messages').append($('<li>').text(result + ': ' + $('#m').val()));
-            socket.emit('chat message', result + ': ' + $('#m').val());
+            var user = { userId: privateUserId, message: $('#m').val()};
+            socket.emit('chat message', user);
             $('#m').val('');
             socket.emit('writing off', result + ' is typing...');
             return false;
@@ -88,11 +98,11 @@
         });
         socket.on('load users', function (clients) {
             clients.forEach(function(client) {
-                $('.onlineusers #users').append($('<li id="'+client.id+'"><a href="#">'+client.nickname+'</a></li>'));
+                $('.onlineusers #users').append($('<li id="'+client.id+'" onclick="privatechat(this)">' + client.nickname + '</li>'));
             });
         });
         socket.on('load new user', function (user) {
-            $('.onlineusers #users').append($('<li id="'+user.id+'"><a href="#">'+user.nickname+'</a></li>'));
+            $('.onlineusers #users').append($('<li id="'+user.id+'" onclick="privatechat(this)">' + user.nickname + '</li>'));
         });
         socket.on('remove user', function (userId) {
             $("#"+userId).remove();

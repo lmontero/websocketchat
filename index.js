@@ -36,11 +36,17 @@
       var user = {id: socket.id, nickname: socket.nickname};
       clients.push(user);
       socket.broadcast.emit('load new user', user);
-      //console.log(clients);
     });
     
-    socket.on('chat message', function (msg) {
-      socket.broadcast.emit('chat message', msg);
+    socket.on('chat message', function (user) {
+      if (user){
+        if (user.userId == 'all'){
+          socket.broadcast.emit('chat message', socket.nickname + ': ' + user.message);
+        }
+        else {
+          socket.broadcast.to(user.userId).emit('chat message', '[' + socket.nickname + ']: ' + user.message);
+        }
+      }
     });
 
     socket.on('disconnect', function (user) {
